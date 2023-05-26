@@ -1,0 +1,1 @@
+This program takegis data from files in `files` directory and puts it as columns of `file.txt`
