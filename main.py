@@ -5,11 +5,17 @@ from os.path import isfile
 
 PATH = './files/'
 WIDTH = 11
-warning_printed = False
+
+file_names = []
 
 try:
     config = configparser.ConfigParser()
     config.read('config.ini')
+
+    try:
+        file_names = config['DEFAULT']['FileOrder'].split(' ')
+    except KeyError:
+        pass
 
     try:
         WIDTH = int(config['DEFAULT']['ColumnWidth'])
@@ -20,13 +26,25 @@ except configparser.Error:
     print('config.ini does not exist or has wrong format.')
 
 
-file_names = [name for name in listdir(PATH) if isfile(PATH + name)]
-print('Files:', ', '.join(file_names), sep=' ')
-files = [open(PATH + file_name, 'r') for file_name in file_names]
+file_set = set(file_names)
+file_names += [name for name in listdir(PATH) if name not in file_set and isfile(PATH + name)]
+files = []
+opened = []
+
+print('Files:', end=' ')
+for i, name in enumerate(file_names):
+    try:
+        files.append(open(PATH + name, 'r'))
+        opened.append(name)
+        print(name, end=' ')
+    except (FileNotFoundError, PermissionError):
+        pass
+print()
 
 out_file = open('file.txt', 'w')
-out_file.write(' '.join([f'{name:{WIDTH}}' for name in file_names]) + '\n')
+out_file.write(' '.join([f'{name:{WIDTH}}' for name in opened]) + '\n')
 
+warning_printed = False
 while True:
     lines = [file.readline().split('\n')[0] for file in files]
 
